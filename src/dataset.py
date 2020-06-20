@@ -64,3 +64,31 @@ class ValidationDataset(Dataset):
 
     def __len__(self):
         return len(self.image_files)
+
+
+class TestDataset(Dataset):
+
+    def __init__(self, hr_files, lr_images, scale):
+        super(TestDataset, self).__init__()
+        self.hr_files = hr_files
+        self.lr_files = lr_images
+        self.scale = scale
+
+    def __getitem__(self, item):
+        lr_image = Image.open(self.lr_files[item])
+        hr_image = Image.open(self.hr_files[item])
+        hr_restore = transforms.Resize(
+            (
+                self.scale * lr_image.size[1],
+                self.scale * lr_image.size[0]
+            ), interpolation=Image.BICUBIC
+        )(lr_image)
+
+        lr_image = transforms.ToTensor(lr_image)
+        hr_image = transforms.ToTensor(hr_image)
+        hr_restore = transforms.ToTensor(hr_restore)
+
+        return lr_image, hr_image, hr_restore
+
+    def __len__(self):
+        return len(self.hr_files)

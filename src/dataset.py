@@ -31,3 +31,36 @@ class TrainDataset(Dataset):
 
     def __len__(self):
         return len(self.image_files)
+
+
+class ValidationDataset(Dataset):
+
+    def __init__(self, image_files, scale):
+        super(ValidationDataset, self).__init__()
+        self.image_files = image_files
+        self.scale = scale
+
+    def __getitem__(self, item):
+        image_file = self.image_files[item]
+        hr_image = Image.open(image_file)
+
+        crop_size = min(hr_image.size)
+        crop_size -= (crop_size % self.scale)
+
+        hr_image = transforms.CenterCrop(crop_size)(hr_image)
+        lr_image = transforms.Resize(
+            crop_size // self.scale,
+            interpolation=Image.BICUBIC
+        )(hr_image)
+        hr_restore = transforms.Resize(
+            crop_size, interpolation=Image.BICUBIC
+        )(lr_image)
+
+        hr_image = transforms.ToTensor()(hr_image)
+        lr_image = transforms.ToTensor()(lr_image)
+        hr_restore = transforms.ToTensor()(hr_restore)
+
+        return lr_image, hr_restore, hr_restore
+
+    def __len__(self):
+        return len(self.image_files)

@@ -47,7 +47,7 @@ class UpSampleBlock(torch.nn.Module):
 
 class DiscriminatorBlock(torch.nn.Module):
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, alpha):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, alpha=0.2):
         super(DiscriminatorBlock, self).__init__()
         self.block = torch.nn.Sequential(
             torch.nn.Conv2d(

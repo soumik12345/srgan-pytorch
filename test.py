@@ -1,8 +1,8 @@
 import torch
 from glob import glob
-from src.models import Generator
 from matplotlib import pyplot as plt
 from torchvision.transforms import ToPILImage
+from src.models import Generator, Discriminator
 from src.dataset import TrainDataset, ValidationDataset
 
 
@@ -33,4 +33,10 @@ plt.show()
 generator = Generator(scale=2)
 x = torch.ones((1, 3, 44, 44))
 y = generator(x)
+print(x.shape, y.shape)
+
+
+discriminator = Discriminator()
+x = torch.ones((1, 3, 88, 88))
+y = discriminator(x)
 print(x.shape, y.shape)

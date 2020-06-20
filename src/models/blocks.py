@@ -43,3 +43,20 @@ class UpSampleBlock(torch.nn.Module):
         y = self.pixel_shuffle(y)
         y = self.activation(y)
         return y
+
+
+class DiscriminatorBlock(torch.nn.Module):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, alpha):
+        super(DiscriminatorBlock, self).__init__()
+        self.block = torch.nn.Sequential(
+            torch.nn.Conv2d(
+                in_channels=in_channels, out_channels=out_channels,
+                kernel_size=kernel_size, stride=stride, padding=padding
+            ),
+            torch.nn.BatchNorm2d(num_features=out_channels),
+            torch.nn.LeakyReLU(negative_slope=alpha)
+        )
+
+    def forward(self, x):
+        return self.block(x)

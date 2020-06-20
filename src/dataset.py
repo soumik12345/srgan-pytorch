@@ -60,7 +60,7 @@ class ValidationDataset(Dataset):
         lr_image = transforms.ToTensor()(lr_image)
         hr_restore = transforms.ToTensor()(hr_restore)
 
-        return lr_image, hr_restore, hr_restore
+        return lr_image, hr_image, hr_restore
 
     def __len__(self):
         return len(self.image_files)

@@ -1,0 +1,4 @@
+VOC2012/
+.DS_Store
+.idea/
+src/__pycache__/

@@ -1,4 +1,6 @@
+import torch
 from glob import glob
+from src.models import Generator
 from matplotlib import pyplot as plt
 from torchvision.transforms import ToPILImage
 from src.dataset import TrainDataset, ValidationDataset
@@ -26,3 +28,9 @@ plt.imshow(ToPILImage()(y))
 plt.show()
 plt.imshow(ToPILImage()(y_res))
 plt.show()
+
+
+generator = Generator(scale=2)
+x = torch.ones((1, 3, 44, 44))
+y = generator(x)
+print(x.shape, y.shape)

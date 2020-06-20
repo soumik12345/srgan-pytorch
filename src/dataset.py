@@ -1,6 +1,7 @@
 import torch
 from PIL import Image
 from torchvision import transforms
+from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 
 
@@ -31,6 +32,12 @@ class TrainDataset(Dataset):
 
     def __len__(self):
         return len(self.image_files)
+
+    def get_loader(self, num_workers, batch_size):
+        return DataLoader(
+            dataset=self, num_workers=num_workers,
+            batch_size=batch_size, shuffle=True
+        )
 
 
 class ValidationDataset(Dataset):
@@ -64,6 +71,12 @@ class ValidationDataset(Dataset):
 
     def __len__(self):
         return len(self.image_files)
+
+    def get_loader(self, num_workers, batch_size):
+        return DataLoader(
+            dataset=self, num_workers=num_workers,
+            batch_size=batch_size, shuffle=True
+        )
 
 
 class TestDataset(Dataset):

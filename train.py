@@ -48,13 +48,8 @@ class Trainer:
         discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters())
         return generator_optimizer, discriminator_optimizer
 
-    def train_discriminator(self, data, target, batch_size):
+    def train_discriminator(self, real_image, fake_image):
         """maximize D(x)-1-D(G(z))"""
-
-        real_image = torch.autograd.Variable(target).cuda()
-        z = torch.autograd.Variable(data).cuda()
-        fake_image = self.generator(z)
-
         self.discriminator.zero_grad()
 
         real_output = self.discriminator(real_image).mean()
@@ -66,4 +61,9 @@ class Trainer:
     def train_step(self):
         for data, target in tqdm(self.train_dataset):
             batch_size = data.size(0)
-            self.train_discriminator(data, target, batch_size)
+
+            real_image = torch.autograd.Variable(target).cuda()
+            z = torch.autograd.Variable(data).cuda()
+            fake_image = self.generator(z)
+
+            self.train_discriminator(real_image, fake_image)

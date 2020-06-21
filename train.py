@@ -73,7 +73,7 @@ class Trainer:
 
         self.generator_optimizer.step()
 
-        return generator_loss
+        return generator_loss, fake_output
 
     def train_step(self):
         for data, target in tqdm(self.train_dataset):
@@ -84,4 +84,4 @@ class Trainer:
             fake_image = self.generator(z)
 
             real_output, fake_output, d_loss = self.train_discriminator(real_image, fake_image)
-            g_loss = self.train_generator(z, real_image, fake_image, fake_output)
+            g_loss, fake_output = self.train_generator(z, real_image, fake_image, fake_output)

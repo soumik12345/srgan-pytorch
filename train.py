@@ -57,6 +57,7 @@ class Trainer:
 
         discriminator_loss = 1 - real_output + fake_output
         discriminator_loss.backward(retain_graph=True)
+        self.discriminator_optimizer.step()
 
     def train_step(self):
         for data, target in tqdm(self.train_dataset):

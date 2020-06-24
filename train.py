@@ -54,10 +54,10 @@ class Trainer:
         for data, target in tqdm(self.train_dataset):
             batch_size = data.size(0)
 
-            # Update Discriminator: maximize D(x) - 1 - D(G(z))
-
             real_image = torch.autograd.Variable(target).cuda()
             z = torch.autograd.Variable(data).cuda()
+
+            # Update Discriminator: maximize D(x) - 1 - D(G(z))
 
             fake_image = self.generator(z)
             self.discriminator.zero_grad()
@@ -66,4 +66,15 @@ class Trainer:
 
             discriminator_loss = 1 - real_output + fake_output
             discriminator_loss.backward(retain_graph=True)
+            self.discriminator_optimizer.step()
+
+            # Update Generator: minimize 1 - D(G(z)) + Perception Loss + Image Loss + TV Loss
+
+            self.generator.zero_grad()
+            generator_loss = self.generator_criterion(fake_output, fake_image, real_image)
+            generator_loss.backward()
+
+            fake_image = self.generator(z)
+            fake_output = self.discriminator(fake_image).mean()
+
             self.discriminator_optimizer.step()

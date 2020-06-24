@@ -108,3 +108,9 @@ class Trainer:
                 'Structural Similarity': structural_similarity,
                 'Peak Signal Noise Ratio': psnr
             })
+
+    def train(self):
+        for epoch in range(1, self.config['epochs'] + 1):
+            print('Epoch:', epoch)
+            self.train_step()
+            self.validation_step()

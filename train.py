@@ -16,13 +16,6 @@ class Trainer:
         self.generator, self.discriminator = self.get_models()
         self.generator_criterion = GeneratorLoss().cuda()
         self.generator_optimizer, self.discriminator_optimizer = self.get_optimizers()
-        self.results = {
-            'discriminator_loss': [],
-            'generator_loss': [],
-            'discriminator_score': [],
-            'generator_score': [],
-            'psnr': [], 'ssim': []
-        }
 
     def get_dataloaders(self):
         train_dataset = TrainDataset(

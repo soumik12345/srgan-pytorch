@@ -1,6 +1,8 @@
 import torch
 import wandb
 from tqdm import tqdm
+from math import log10
+from pytorch_ssim import ssim
 from src.loss import GeneratorLoss
 from src.models import Generator, Discriminator
 from src.dataset import TrainDataset, ValidationDataset
@@ -52,6 +54,7 @@ class Trainer:
     def train_step(self):
         self.generator.train()
         self.discriminator.train()
+
         for data, target in tqdm(self.train_dataset):
             batch_size = data.size(0)
 
@@ -85,4 +88,23 @@ class Trainer:
                 'discriminator_loss': discriminator_loss.item() * batch_size,
                 'generator_score': fake_output.item() * batch_size,
                 'discriminator_score': real_output.item() * batch_size
+            })
+
+    def validation_step(self):
+        self.generator.eval()
+
+        for val_lr, val_hr_restore, val_hr in tqdm(self.val_dataset):
+            batch_size = val_lr.size(0)
+            lr = val_lr.cuda()
+            hr = val_hr.cuda()
+            sr = self.generator(lr)
+
+            mse = ((sr - hr) ** 2).data.mean()
+            structural_similarity = ssim(sr, hr).item()
+            psnr = 10 * log10((hr.max()**2) / (mse / batch_size))
+
+            wandb.log({
+                'Mean Squared Error': mse,
+                'Structural Similarity': structural_similarity,
+                'Peak Signal Noise Ratio': psnr
             })

@@ -101,11 +101,11 @@ class Trainer:
 
             mse = ((sr - hr) ** 2).data.mean()
             structural_similarity = ssim(sr, hr).item()
-            psnr = 10 * log10((hr.max()**2) / (mse / batch_size))
+            psnr = 10 * log10((hr.max() ** 2) / (mse / batch_size))
 
             wandb.log({
-                'Mean Squared Error': mse,
-                'Structural Similarity': structural_similarity,
+                'Mean Squared Error': mse * batch_size,
+                'Structural Similarity': structural_similarity * batch_size,
                 'Peak Signal Noise Ratio': psnr
             })
 

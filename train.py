@@ -48,40 +48,22 @@ class Trainer:
         discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters())
         return generator_optimizer, discriminator_optimizer
 
-    def train_discriminator(self, real_image, fake_image):
-        """maximize D(x)-1-D(G(z))"""
-        self.discriminator.zero_grad()
-
-        real_output = self.discriminator(real_image).mean()
-        fake_output = self.discriminator(fake_image).mean()
-
-        discriminator_loss = 1 - real_output + fake_output
-        discriminator_loss.backward(retain_graph=True)
-        self.discriminator_optimizer.step()
-
-        return real_output, fake_output, discriminator_loss
-
-    def train_generator(self, z, real_image, fake_image, fake_output):
-        """minimize 1-D(G(z)) + Perception Loss + Image Loss + TV Loss"""
-        self.generator.zero_grad()
-        generator_loss = self.generator_criterion(fake_output, fake_image, real_image)
-
-        generator_loss.backward()
-
-        fake_image = self.generator(z)
-        fake_output = self.discriminator(fake_image).mean()
-
-        self.generator_optimizer.step()
-
-        return generator_loss, fake_output
-
     def train_step(self):
+        self.generator.train()
+        self.discriminator.train()
         for data, target in tqdm(self.train_dataset):
             batch_size = data.size(0)
 
+            # Update Discriminator: maximize D(x) - 1 - D(G(z))
+
             real_image = torch.autograd.Variable(target).cuda()
             z = torch.autograd.Variable(data).cuda()
-            fake_image = self.generator(z)
 
-            real_output, fake_output, d_loss = self.train_discriminator(real_image, fake_image)
-            g_loss, fake_output = self.train_generator(z, real_image, fake_image, fake_output)
+            fake_image = self.generator(z)
+            self.discriminator.zero_grad()
+            real_output = self.discriminator(real_image).mean()
+            fake_output = self.discriminator(fake_image).mean()
+
+            discriminator_loss = 1 - real_output + fake_output
+            discriminator_loss.backward(retain_graph=True)
+            self.discriminator_optimizer.step()

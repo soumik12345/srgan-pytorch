@@ -1,4 +1,5 @@
 import torch
+import wandb
 from tqdm import tqdm
 from src.loss import GeneratorLoss
 from src.models import Generator, Discriminator
@@ -78,3 +79,10 @@ class Trainer:
             fake_output = self.discriminator(fake_image).mean()
 
             self.discriminator_optimizer.step()
+
+            wandb.log({
+                'generator_loss': generator_loss.item() * batch_size,
+                'discriminator_loss': discriminator_loss.item() * batch_size,
+                'generator_score': fake_output.item() * batch_size,
+                'discriminator_score': real_output.item() * batch_size
+            })

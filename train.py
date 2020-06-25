@@ -104,33 +104,31 @@ class Trainer:
     def validation_step(self):
         self.generator.eval()
 
-        iteration = 0
-        for val_lr, val_hr_restore, val_hr in tqdm(self.val_dataset):
-            batch_size = val_lr.size(0)
-            lr = val_lr.cuda()
-            hr = val_hr.cuda()
-            sr = self.generator(lr)
+        for i in tqdm(range(1000)):
+            for val_lr, val_hr, val_hr_restore in self.val_dataset:
+                batch_size = val_lr.size(0)
+                lr = val_lr.cuda()
+                hr = val_hr.cuda()
+                sr = self.generator(lr)
 
-            mse = ((sr - hr) ** 2).data.mean()
-            structural_similarity = ssim(sr, hr).item()
-            psnr = 10 * log10((hr.max() ** 2) / (mse / batch_size))
+                mse = ((sr - hr) ** 2).data.mean()
+                structural_similarity = ssim(sr, hr).item()
+                psnr = 10 * log10((hr.max() ** 2) / (mse / batch_size))
 
-            wandb.log({
-                'Mean Squared Error': mse * batch_size,
-                'Structural Similarity': structural_similarity * batch_size,
-                'Peak Signal Noise Ratio': psnr,
-            })
-
-            if iteration == 0:
                 wandb.log({
-                    "Validation Images": [
-                        wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
-                        wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
-                        wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
-                    ]
+                    'Mean Squared Error': mse * batch_size,
+                    'Structural Similarity': structural_similarity * batch_size,
+                    'Peak Signal Noise Ratio': psnr,
                 })
 
-            iteration += 1
+                if iteration == 0:
+                    wandb.log({
+                        "Validation Images": [
+                            wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
+                            wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
+                            wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
+                        ]
+                    })
 
     def train(self):
         wandb.watch(self.generator)
@@ -141,7 +139,7 @@ class Trainer:
 
 
 if __name__ == '__main__':
-    images = glob('./data/VOC2012/JPEGImages/*')
+    images = glob('./data/VOCdevkit/VOC2012/JPEGImages/*')
     random.shuffle(images)
     train_images = images[:17000]
     val_images = images[17000:]
@@ -155,7 +153,7 @@ if __name__ == '__main__':
         'scale': 2,
         'num_workers': 4,
         'train_batch_size': 8,
-        'val_batch_size': 4,
+        'val_batch_size': 1,
         'epochs': 100
     }
 

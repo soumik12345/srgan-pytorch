@@ -121,7 +121,7 @@ class Trainer:
                     'Peak Signal Noise Ratio': psnr,
                 })
 
-                if iteration == 0:
+                if i == 0:
                     wandb.log({
                         "Validation Images": [
                             wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),

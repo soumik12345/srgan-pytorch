@@ -104,7 +104,7 @@ class Trainer:
     def validation_step(self):
         self.generator.eval()
 
-        for i in tqdm(range(1000)):
+        for i in tqdm(range(20)):
             for val_lr, val_hr, val_hr_restore in self.val_dataset:
                 batch_size = val_lr.size(0)
                 lr = val_lr.cuda()
@@ -139,6 +139,7 @@ class Trainer:
 
 
 if __name__ == '__main__':
+    # remove 2008_001823.jpg
     images = glob('./data/VOCdevkit/VOC2012/JPEGImages/*')
     random.shuffle(images)
     train_images = images[:17000]

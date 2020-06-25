@@ -1,4 +1,4 @@
-VOC2012/
+data/VOC2012/
 .DS_Store
 .idea/
 secret.py

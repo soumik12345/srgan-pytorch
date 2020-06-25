@@ -17,7 +17,7 @@ class Trainer:
 
     def __init__(self, config):
         self.config = config
-        print(self.config)
+        self.initialize_wandb()
         self.visualization_transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToPILImage(),
             torchvision.transforms.Resize(400),
@@ -53,7 +53,7 @@ class Trainer:
         return train_dataset, val_dataset
 
     def get_models(self):
-        generator = Generator(self.config['self']).cuda()
+        generator = Generator(self.config['scale']).cuda()
         discriminator = Discriminator().cuda()
         return generator, discriminator
 
@@ -141,7 +141,7 @@ class Trainer:
 
 
 if __name__ == '__main__':
-    images = glob('./VOC2012/JPEGImages/*')
+    images = glob('./data/VOC2012/JPEGImages/*')
     random.shuffle(images)
     train_images = images[:17000]
     val_images = images[17000:]

@@ -6,7 +6,7 @@ import torchvision
 from glob import glob
 from tqdm import tqdm
 from math import log10
-from pytorch_ssim import ssim
+from src.ssim import ssim
 from secret import WANDB_API_KEY
 from src.loss import GeneratorLoss
 from src.models import Generator, Discriminator

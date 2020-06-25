@@ -1,7 +1,9 @@
 import os
 import torch
 import wandb
+import random
 import torchvision
+from glob import glob
 from tqdm import tqdm
 from math import log10
 from pytorch_ssim import ssim
@@ -15,6 +17,7 @@ class Trainer:
 
     def __init__(self, config):
         self.config = config
+        print(self.config)
         self.visualization_transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToPILImage(),
             torchvision.transforms.Resize(400),
@@ -38,14 +41,14 @@ class Trainer:
             self.config['crop_size'], self.config['scale']
         ).get_loader(
             self.config['num_workers'],
-            self.config['batch_size']
+            self.config['train_batch_size']
         )
         val_dataset = ValidationDataset(
             self.config['val_images'],
             self.config['scale']
         ).get_loader(
             self.config['num_workers'],
-            self.config['batch_size']
+            self.config['val_batch_size']
         )
         return train_dataset, val_dataset
 
@@ -128,3 +131,26 @@ class Trainer:
             print('Epoch:', epoch)
             self.train_step()
             self.validation_step()
+
+
+if __name__ == '__main__':
+    images = glob('./VOC2012/JPEGImages/*')
+    random.shuffle(images)
+    train_images = images[:17000]
+    val_images = images[17000:]
+
+    configurations = {
+        'project_name': 'srgan-pytorch',
+        'experiment_name': 'exp-1',
+        'train_images': train_images,
+        'val_images': val_images,
+        'crop_size': 88,
+        'scale': 2,
+        'num_workers': 4,
+        'train_batch_size': 8,
+        'val_batch_size': 4,
+        'epochs': 100
+    }
+
+    trainer = Trainer(configurations)
+    trainer.train()

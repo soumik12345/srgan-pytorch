@@ -115,9 +115,11 @@ class Trainer:
                 'Mean Squared Error': mse * batch_size,
                 'Structural Similarity': structural_similarity * batch_size,
                 'Peak Signal Noise Ratio': psnr,
-                "Validation LR": [wandb.Image(lr.data.cpu().squeeze(0), caption="Label")],
-                "Validation HR": [wandb.Image(hr.data.cpu().squeeze(0), caption="Label")],
-                "Validation SR": [wandb.Image(sr.data.cpu().squeeze(0), caption="Label")]
+                "Validation Images": [
+                    wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
+                    wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
+                    wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
+                ]
             })
 
     def train(self):

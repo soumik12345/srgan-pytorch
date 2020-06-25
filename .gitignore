@@ -1,6 +1,7 @@
 VOC2012/
 .DS_Store
 .idea/
+secret.py
 src/__pycache__/
 src/models/__pycache__/
 .ipynb_checkpoints/

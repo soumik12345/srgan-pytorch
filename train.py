@@ -1,8 +1,10 @@
+import os
 import torch
 import wandb
 from tqdm import tqdm
 from math import log10
 from pytorch_ssim import ssim
+from secret import WANDB_API_KEY
 from src.loss import GeneratorLoss
 from src.models import Generator, Discriminator
 from src.dataset import TrainDataset, ValidationDataset
@@ -16,6 +18,13 @@ class Trainer:
         self.generator, self.discriminator = self.get_models()
         self.generator_criterion = GeneratorLoss().cuda()
         self.generator_optimizer, self.discriminator_optimizer = self.get_optimizers()
+
+    def initialize_wandb(self):
+        os.environ["WANDB_API_KEY"] = WANDB_API_KEY
+        wandb.init(
+            project=self.config['project_name'],
+            name=self.config['experiment_name']
+        )
 
     def get_dataloaders(self):
         train_dataset = TrainDataset(
@@ -103,6 +112,7 @@ class Trainer:
             })
 
     def train(self):
+        wandb.watch(self.generator)
         for epoch in range(1, self.config['epochs'] + 1):
             print('Epoch:', epoch)
             self.train_step()

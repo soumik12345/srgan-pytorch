@@ -3,3 +3,5 @@ VOC2012/
 .idea/
 src/__pycache__/
 src/models/__pycache__/
+.ipynb_checkpoints/
+src/.ipynb_checkpoints/

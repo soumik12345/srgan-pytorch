@@ -104,6 +104,7 @@ class Trainer:
     def validation_step(self):
         self.generator.eval()
 
+        iteration = 0
         for val_lr, val_hr_restore, val_hr in tqdm(self.val_dataset):
             batch_size = val_lr.size(0)
             lr = val_lr.cuda()
@@ -118,12 +119,18 @@ class Trainer:
                 'Mean Squared Error': mse * batch_size,
                 'Structural Similarity': structural_similarity * batch_size,
                 'Peak Signal Noise Ratio': psnr,
-                "Validation Images": [
-                    wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
-                    wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
-                    wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
-                ]
             })
+
+            if iteration == 0:
+                wandb.log({
+                    "Validation Images": [
+                        wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
+                        wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
+                        wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
+                    ]
+                })
+
+            iteration += 1
 
     def train(self):
         wandb.watch(self.generator)

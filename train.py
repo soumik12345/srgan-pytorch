@@ -1,6 +1,7 @@
 import os
 import torch
 import wandb
+import torchvision
 from tqdm import tqdm
 from math import log10
 from pytorch_ssim import ssim
@@ -14,6 +15,11 @@ class Trainer:
 
     def __init__(self, config):
         self.config = config
+        self.visualization_transforms = torchvision.transforms.Compose([
+            torchvision.transforms.ToPILImage(),
+            torchvision.transforms.Resize(400),
+            torchvision.transforms.CenterCrop(400)
+        ])
         self.train_dataset, self.val_dataset = self.get_dataloaders()
         self.generator, self.discriminator = self.get_models()
         self.generator_criterion = GeneratorLoss().cuda()
@@ -108,7 +114,10 @@ class Trainer:
             wandb.log({
                 'Mean Squared Error': mse * batch_size,
                 'Structural Similarity': structural_similarity * batch_size,
-                'Peak Signal Noise Ratio': psnr
+                'Peak Signal Noise Ratio': psnr,
+                "Validation LR": [wandb.Image(lr.data.cpu().squeeze(0), caption="Label")],
+                "Validation HR": [wandb.Image(hr.data.cpu().squeeze(0), caption="Label")],
+                "Validation SR": [wandb.Image(sr.data.cpu().squeeze(0), caption="Label")]
             })
 
     def train(self):

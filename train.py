@@ -17,6 +17,7 @@ class Trainer:
 
     def __init__(self, config):
         self.config = config
+        self.device = self.config['device']
         self.initialize_wandb()
         self.visualization_transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToPILImage(),
@@ -25,7 +26,7 @@ class Trainer:
         ])
         self.train_dataset, self.val_dataset = self.get_dataloaders()
         self.generator, self.discriminator = self.get_models()
-        self.generator_criterion = GeneratorLoss().cuda()
+        self.generator_criterion = GeneratorLoss().to(self.device)
         self.generator_optimizer, self.discriminator_optimizer = self.get_optimizers()
 
     def initialize_wandb(self):
@@ -53,8 +54,8 @@ class Trainer:
         return train_dataset, val_dataset
 
     def get_models(self):
-        generator = Generator(self.config['scale']).cuda()
-        discriminator = Discriminator().cuda()
+        generator = Generator(self.config['scale']).to(self.device)
+        discriminator = Discriminator().to(self.device)
         return generator, discriminator
 
     def get_optimizers(self):
@@ -69,13 +70,13 @@ class Trainer:
         for data, target in tqdm(self.train_dataset):
             batch_size = data.size(0)
 
-            real_image = torch.autograd.Variable(target).cuda()
-            z = torch.autograd.Variable(data).cuda()
+            real_image = target.to(self.device)
+            z = data.to(self.device)
 
             # Update Discriminator: maximize D(x) - 1 - D(G(z))
 
+            self.discriminator_optimizer.zero_grad()
             fake_image = self.generator(z)
-            self.discriminator.zero_grad()
             real_output = self.discriminator(real_image).mean()
             fake_output = self.discriminator(fake_image).mean()
 
@@ -85,13 +86,9 @@ class Trainer:
 
             # Update Generator: minimize 1 - D(G(z)) + Perception Loss + Image Loss + TV Loss
 
-            self.generator.zero_grad()
+            self.generator_optimizer.zero_grad()
             generator_loss = self.generator_criterion(fake_output, fake_image, real_image)
             generator_loss.backward()
-
-            fake_image = self.generator(z)
-            fake_output = self.discriminator(fake_image).mean()
-
             self.discriminator_optimizer.step()
 
             wandb.log({
@@ -103,32 +100,32 @@ class Trainer:
 
     def validation_step(self):
         self.generator.eval()
+        with torch.no_grad():
+            for i in tqdm(range(20)):
+                for val_lr, val_hr, val_hr_restore in self.val_dataset:
+                    batch_size = val_lr.size(0)
+                    lr = val_lr.to(self.device)
+                    hr = val_hr.to(self.device)
+                    sr = self.generator(lr)
 
-        for i in tqdm(range(20)):
-            for val_lr, val_hr, val_hr_restore in self.val_dataset:
-                batch_size = val_lr.size(0)
-                lr = val_lr.cuda()
-                hr = val_hr.cuda()
-                sr = self.generator(lr)
+                    mse = ((sr - hr) ** 2).data.mean()
+                    structural_similarity = ssim(sr, hr).item()
+                    psnr = 10 * log10((hr.max() ** 2) / (mse / batch_size))
 
-                mse = ((sr - hr) ** 2).data.mean()
-                structural_similarity = ssim(sr, hr).item()
-                psnr = 10 * log10((hr.max() ** 2) / (mse / batch_size))
-
-                wandb.log({
-                    'Mean Squared Error': mse * batch_size,
-                    'Structural Similarity': structural_similarity * batch_size,
-                    'Peak Signal Noise Ratio': psnr,
-                })
-
-                if i == 0:
                     wandb.log({
-                        "Validation Images": [
-                            wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
-                            wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
-                            wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
-                        ]
+                        'Mean Squared Error': mse * batch_size,
+                        'Structural Similarity': structural_similarity * batch_size,
+                        'Peak Signal Noise Ratio': psnr,
                     })
+
+                    if i == 0:
+                        wandb.log({
+                            "Validation Images": [
+                                wandb.Image(lr.data.cpu().squeeze(0), caption="Low-Res"),
+                                wandb.Image(hr.data.cpu().squeeze(0), caption="High-Res"),
+                                wandb.Image(sr.data.cpu().squeeze(0), caption="Super-Res")
+                            ]
+                        })
 
     def train(self):
         wandb.watch(self.generator)
@@ -155,7 +152,8 @@ if __name__ == '__main__':
         'num_workers': 4,
         'train_batch_size': 8,
         'val_batch_size': 1,
-        'epochs': 100
+        'epochs': 100,
+        'device': "cuda:0"
     }
 
     trainer = Trainer(configurations)

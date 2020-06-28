@@ -44,6 +44,7 @@ class Trainer:
         )
         val_dataset = ValidationDataset(
             self.config['val_images'],
+            self.config['val_crop_size'],
             self.config['scale']
         ).get_loader(
             self.config['num_workers'],
@@ -149,6 +150,7 @@ if __name__ == '__main__':
         'train_images': train_images,
         'val_images': valid_images,
         'crop_size': 88,
+        'val_crop_size': 400,
         'scale': 2,
         'num_workers': 4,
         'train_batch_size': 8,

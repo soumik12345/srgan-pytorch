@@ -41,9 +41,10 @@ class TrainDataset(Dataset):
 
 class ValidationDataset(Dataset):
 
-    def __init__(self, image_files, scale):
+    def __init__(self, image_files, crop_size, scale):
         super(ValidationDataset, self).__init__()
         self.image_files = image_files
+        self.crop_size = crop_size
         self.scale = scale
 
     def __getitem__(self, item):
@@ -51,17 +52,16 @@ class ValidationDataset(Dataset):
         
         try:
             hr_image = Image.open(image_file)
-
-            crop_size = min(hr_image.size)
-            crop_size -= (crop_size % self.scale)
-
-            hr_image = transforms.CenterCrop(crop_size)(hr_image)
+            hr_image = transforms.CenterCrop(
+                self.crop_size
+            )(hr_image)
             lr_image = transforms.Resize(
-                crop_size // self.scale,
+                self.crop_size // self.scale,
                 interpolation=Image.BICUBIC
             )(hr_image)
             hr_restore = transforms.Resize(
-                crop_size, interpolation=Image.BICUBIC
+                self.crop_size,
+                interpolation=Image.BICUBIC
             )(lr_image)
 
             hr_image = transforms.ToTensor()(hr_image)

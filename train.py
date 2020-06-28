@@ -20,9 +20,7 @@ class Trainer:
         self.device = torch.device(self.config['device'])
         self.initialize_wandb()
         self.visualization_transforms = torchvision.transforms.Compose([
-            torchvision.transforms.ToPILImage(),
-            torchvision.transforms.Resize(400),
-            torchvision.transforms.CenterCrop(400)
+            torchvision.transforms.ToPILImage()
         ])
         self.train_dataset, self.val_dataset = self.get_dataloaders()
         self.generator, self.discriminator = self.get_models()
@@ -101,7 +99,7 @@ class Trainer:
     def validation_step(self):
         self.generator.eval()
         with torch.no_grad():
-            for i in tqdm(range(20)):
+            for i in tqdm(range(len(self.config['val_images']) // self.config['val_batch_size'])):
                 for val_lr, val_hr, val_hr_restore in self.val_dataset:
                     batch_size = val_lr.size(0)
                     lr = val_lr.to(self.device)
@@ -147,15 +145,15 @@ if __name__ == '__main__':
 
     configurations = {
         'project_name': 'srgan-pytorch',
-        'experiment_name': 'exp-1',
+        'experiment_name': 'exp-1-div2k',
         'train_images': train_images,
         'val_images': valid_images,
         'crop_size': 88,
         'scale': 2,
         'num_workers': 4,
         'train_batch_size': 8,
-        'val_batch_size': 1,
-        'epochs': 100,
+        'val_batch_size': 4,
+        'epochs': 200,
         'device': "cuda:0"
     }
 

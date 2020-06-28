@@ -17,7 +17,7 @@ class Trainer:
 
     def __init__(self, config):
         self.config = config
-        self.device = self.config['device']
+        self.device = torch.device(self.config['device'])
         self.initialize_wandb()
         self.visualization_transforms = torchvision.transforms.Compose([
             torchvision.transforms.ToPILImage(),
@@ -137,16 +137,19 @@ class Trainer:
 
 if __name__ == '__main__':
     # remove 2008_001823.jpg
-    images = glob('./data/VOCdevkit/VOC2012/JPEGImages/*')
-    random.shuffle(images)
-    train_images = images[:17000]
-    val_images = images[17000:]
+#     images = glob('./data/VOCdevkit/VOC2012/JPEGImages/*')
+#     random.shuffle(images)
+#     train_images = images[:17000]
+#     val_images = images[17000:]
+
+    train_images = glob('./data/DIV2K_train_HR/*')
+    valid_images = glob('./data/DIV2K_valid_HR/*')
 
     configurations = {
         'project_name': 'srgan-pytorch',
         'experiment_name': 'exp-1',
         'train_images': train_images,
-        'val_images': val_images,
+        'val_images': valid_images,
         'crop_size': 88,
         'scale': 2,
         'num_workers': 4,
